@@ -1,0 +1,38 @@
+step "run-a-script" {
+    name = "Run a Script"
+
+    action {
+        action_type = "Octopus.Script"
+        properties = {
+            Octopus.Action.GitRepository.Source = "External"
+            Octopus.Action.Script.ScriptFileName = "test.ps1"
+            Octopus.Action.Script.ScriptSource = "GitRepository"
+            OctopusUseBundledTooling = "False"
+        }
+        worker_pool = "hosted-ubuntu"
+
+        git_dependencies {
+            default_branch = "main"
+            git_credential_id = "GitCredentials-442"
+            git_credential_type = "Library"
+            repository_uri = "https://github.com/mcasperson/cacmigratetest.git"
+        }
+    }
+}
+
+step "kubernetes-create-service-account-and-target" {
+    name = "Kubernetes - Create Service Account and Target"
+    properties = {
+        Octopus.Action.TargetRoles = "cloud"
+    }
+
+    action {
+        properties = {
+            Namespace = "#{Octopus.Environment.Name | ToLower}"
+            Octopus.Action.Template.Id = "ActionTemplates-301"
+            Octopus.Action.Template.Version = "4"
+            Role = "k8s"
+        }
+        worker_pool_variable = ""
+    }
+}
